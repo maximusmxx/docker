@@ -1,0 +1,9 @@
+services:
+  mysql:
+    build: ./docker/mysql
+  php:
+    build: ./docker/php
+  nginx:
+    build: ./docker/nginx
+#  node:
+#    build: ./docker/node

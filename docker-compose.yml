@@ -1,0 +1,51 @@
+x-common: &common
+  tty: true
+  restart: unless-stopped
+  networks: { default: ~ }
+networks:
+  default:
+    enable_ipv6: false
+    driver_opts:
+      com.docker.network.enable_ipv6: 'false'
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET}
+          gateway: ${DOCKER_GATEWAY}
+services:
+  mysql:
+    <<: *common
+    environment:
+      MYSQL_DATABASE: ${DOCKER_PROJECT}
+      MYSQL_USER: ${DOCKER_PROJECT}
+      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD:
+    volumes:
+      - ${VOLUME_MYSQL_DATA:-./volume/mysql/data/}:/var/lib/mysql/
+      - ${VOLUME_MYSQL_HOME:-./volume/mysql/sharing/}:/home/mysql/ # Just for file sharing
+    expose:
+      - 3306/tcp # TCP MySQL
+  php:
+    <<: *common
+    depends_on:
+      - mysql
+    environment:
+      XDEBUG_MODE: "off"
+    volumes:
+      - ./app/:/var/www/
+    expose:
+      - 9000/tcp # FastCGI
+  nginx:
+    <<: *common
+    depends_on:
+      - php
+    volumes:
+      - ${VOLUME_NGINX_CACHE:-./volume/nginx/cache/}:/var/cache/nginx/
+      - ${VOLUME_NGINX_LOG:-./volume/nginx/log/}:/var/log/nginx/
+      - ./app/:/var/www/
+    expose:
+      - 80/tcp # HTTP
+      - 443/tcp # HTTPS
+    ports:
+      - 80:80
+#  node:
+#    <<: *php-env

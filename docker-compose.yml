@@ -26,26 +26,32 @@ services:
       - 3306/tcp # TCP MySQL
   php:
     <<: *common
-    depends_on:
-      - mysql
-    environment:
-      XDEBUG_MODE: "off"
+#    depends_on:
+#      - mysql
+#    environment:
+#      XDEBUG_MODE: "off"
     volumes:
       - ./app/:/var/www/
     expose:
       - 9000/tcp # FastCGI
   nginx:
     <<: *common
-    depends_on:
-      - php
+#    depends_on:
+#      - php
     volumes:
       - ${VOLUME_NGINX_CACHE:-./volume/nginx/cache/}:/var/cache/nginx/
       - ${VOLUME_NGINX_LOG:-./volume/nginx/log/}:/var/log/nginx/
       - ./app/:/var/www/
     expose:
       - 80/tcp # HTTP
-      - 443/tcp # HTTPS
+#      - 443/tcp # HTTPS
     ports:
       - 80:80
+  frankenphp:
+    <<: *common
+    volumes:
+      - ./app/:/app/
+    ports:
+      - 88:80
 #  node:
 #    <<: *php-env

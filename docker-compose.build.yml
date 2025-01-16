@@ -5,5 +5,7 @@ services:
     build: ./docker/php
   nginx:
     build: ./docker/nginx
+  frankenphp:
+    build: ./docker/frankenphp
 #  node:
 #    build: ./docker/node

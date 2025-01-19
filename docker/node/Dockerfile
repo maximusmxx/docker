@@ -1,4 +1,4 @@
-#FROM node:23-alpine AS warp_node
+FROM node:23-alpine
 
 #WORKDIR /app
 #

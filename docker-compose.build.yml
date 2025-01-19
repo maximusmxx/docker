@@ -1,11 +1,20 @@
 services:
-  mysql:
-    build: ./docker/mysql
   php:
     build: ./docker/php
   nginx:
     build: ./docker/nginx
   frankenphp:
     build: ./docker/frankenphp
+  redis:
+    build: ./docker/redis
+  mysql:
+    build: ./docker/mysql
+  postgresql:
+    build: ./docker/postgresql
+  clickhouse:
+    build: ./docker/clickhouse
+  rabbitmq:
+    build: ./docker/rabbitmq
+
 #  node:
 #    build: ./docker/node

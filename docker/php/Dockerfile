@@ -1,4 +1,4 @@
-FROM php:8.3.15-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 # Install main packages and remove default server definition
 RUN apk add --no-cache \

@@ -1,0 +1,103 @@
+x-common: &common
+  tty: true
+  restart: unless-stopped
+  networks: { default: ~ }
+networks:
+  default:
+    enable_ipv6: false
+    driver_opts:
+      com.docker.network.enable_ipv6: 'false'
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET}
+          gateway: ${DOCKER_GATEWAY}
+services:
+  php:
+    <<: *common
+    #    depends_on:
+    #      - mysql
+    #    environment:
+    #      XDEBUG_MODE: "off"
+    volumes:
+      - ./app/:/var/www/
+    expose:
+      - 9000/tcp # FastCGI
+  nginx:
+    <<: *common
+    #    depends_on:
+    #      - php
+    volumes:
+      - ${VOLUME_NGINX_CACHE:-./volume/nginx/cache/}:/var/cache/nginx/
+      - ${VOLUME_NGINX_LOG:-./volume/nginx/log/}:/var/log/nginx/
+      - ./app/:/var/www/
+    expose:
+      - 80/tcp # HTTP
+    #      - 443/tcp # HTTPS
+    ports:
+      - 80:80
+  frankenphp:
+    <<: *common
+    volumes:
+      - ./app/:/app/
+    ports:
+      - 88:80
+  redis:
+    <<: *common
+    volumes:
+      - ${VOLUME_REDIS_DATA:-./volume/redis/data/}:/data/
+    expose:
+      - 6379/tcp # Cli
+      - 6380/tcp #
+  mysql:
+    <<: *common
+    environment:
+      MYSQL_DATABASE: ${DOCKER_PROJECT}
+      MYSQL_USER: ${DOCKER_PROJECT}
+      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD:
+    volumes:
+      - ${VOLUME_MYSQL_DATA:-./volume/mysql/data/}:/var/lib/mysql/
+      - ${VOLUME_MYSQL_HOME:-./volume/mysql/sharing/}:/home/mysql/ # Just for file sharing
+    expose:
+      - 3306/tcp # TCP MySQL
+  postgresql:
+    <<: *common
+    environment:
+      POSTGRES_DB: $DOCKER_PROJECT
+      POSTGRES_USER: $DOCKER_PROJECT
+      POSTGRES_PASSWORD:
+    volumes:
+      - ${VOLUME_POSTGRES_DATA:-./volume/postgresql/data/}:/var/lib/postgresql/data/
+      - ${VOLUME_POSTGRES_LOG:-./volume/postgresql/log/}:/var/log/postgresql/
+      - ${VOLUME_POSTGRES_HOME:-./volume/postgresql/sharing/}:/home/postgresql/ # Just for file sharing
+    expose:
+      - 5432/tcp # Cli
+  clickhouse:
+    <<: *common
+    environment:
+      CLICKHOUSE_DB: $DOCKER_PROJECT
+      CLICKHOUSE_USER: $DOCKER_PROJECT
+      CLICKHOUSE_PASSWORD:
+    volumes:
+      - ${VOLUME_CLICKHOUSE_DATA:-./volume/clickhouse/data/}:/var/lib/clickhouse/
+    expose:
+      - 9000/tcp # TCP native client
+      - 8123/tcp # HTTP
+      - 3307/tcp # MySQL
+    ulimits: { nofile: 262144 }
+  rabbitmq:
+    <<: *common
+    volumes:
+      - ${VOLUME_RABBITMQ_DATA:-./volume/rabbitmq/data/}:/var/lib/rabbitmq/
+    environment:
+      RABBITMQ_NODENAME:
+      RABBITMQ_DEFAULT_VHOST:
+      RABBITMQ_HIPE_COMPILE:
+      RABBITMQ_DEFAULT_USER:
+      RABBITMQ_DEFAULT_PASS:
+    expose:
+      - 5672/tcp # AMQP
+      - 15672/tcp # HTTP Management UI
+
+#  node:
+#    <<: *php-env

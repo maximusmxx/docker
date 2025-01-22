@@ -15,6 +15,7 @@ services:
     build: ./docker/clickhouse
   rabbitmq:
     build: ./docker/rabbitmq
-
+#  amqproxy:
+#    build: ./docker/amqproxy
 #  node:
 #    build: ./docker/node

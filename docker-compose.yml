@@ -43,6 +43,8 @@ services:
       - 88:80
   redis:
     <<: *common
+    environment:
+      REDIS_PASSWORD:
     volumes:
       - ${VOLUME_REDIS_DATA:-./volume/redis/data/}:/data/
     expose:
@@ -98,6 +100,22 @@ services:
     expose:
       - 5672/tcp # AMQP
       - 15672/tcp # HTTP Management UI
+
+
+#  amqproxy:
+#    <<: *common
+#    environment:
+#      RABBITMQ_NODENAME:
+#      RABBITMQ_DEFAULT_VHOST:
+#      RABBITMQ_HIPE_COMPILE:
+#      RABBITMQ_DEFAULT_USER:
+#      RABBITMQ_DEFAULT_PASS:
+#    expose:
+#      - 5672/tcp # AMQP
+#      - 15672/tcp # HTTP Management UI
+
+
+
 
 #  node:
 #    <<: *php-env

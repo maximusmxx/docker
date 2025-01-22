@@ -1,88 +1,65 @@
 FROM php:8.3-fpm-alpine
+ENV TZ UTC
 
-ARG PHP_V=php83
+# Default modules in PHP 8.3
+# ctype curl date dom fileinfo filter hash iconv json libxml mbstring mysqlnd openssl pcre PDO pdo_sqlite Phar posix
+# random readline Reflection session SimpleXML sodium SPL sqlite3 standard tokenizer xml xmlreader xmlwriter zlib
 
 # Install main packages and remove default server definition
 RUN apk add --no-cache \
   bash \
   curl \
   git \
+  linux-headers \
+  vim \
   wget \
   zip
 
 RUN set -xe \
-    && apk add --no-cache --virtual .build-deps \
-        autoconf \
-        freetype-dev \
-        g++ \
-        icu-dev \
-        libjpeg-turbo-dev \
-        libmcrypt-dev \
-        libpng-dev \
-        libxslt-dev \
-        libzip-dev \
-        make \
-        openssh-client \
-        patch \
-        rabbitmq-c-dev
+  && apk add --no-cache --virtual .build-deps \
+    autoconf \
+    icu-dev \
+    g++ \
+    libpng-dev \
+    libzip-dev \
+    make \
+    openssh-client \
+    postgresql-dev \
+    rabbitmq-c-dev
 
-# Install PHP and its extensions packages and remove default server definition
-RUN apk add --no-cache \
-  ${PHP_V}-cli \
-  ${PHP_V}-ctype \
-  ${PHP_V}-curl \
-  ${PHP_V}-dom \
-  ${PHP_V}-fileinfo \
-  ${PHP_V}-fpm \
-  ${PHP_V}-gd \
-  ${PHP_V}-intl \
-  ${PHP_V}-mbstring \
-  ${PHP_V}-opcache \
-  ${PHP_V}-openssl \
-  ${PHP_V}-phar \
-  ${PHP_V}-session \
-  ${PHP_V}-simplexml \
-  ${PHP_V}-soap \
-  ${PHP_V}-tokenizer \
-  ${PHP_V}-xml \
-  ${PHP_V}-xmlreader \
-  ${PHP_V}-xmlwriter \
-  ${PHP_V}-zip \
-  # Databases
-  ${PHP_V}-mongodb \
-  ${PHP_V}-mysqli \
-  ${PHP_V}-mysqlnd \
-  ${PHP_V}-pdo \
-  ${PHP_V}-pdo_mysql \
-  ${PHP_V}-pdo_pgsql \
-  ${PHP_V}-pdo_sqlite \
-  ${PHP_V}-pgsql \
-  ${PHP_V}-sqlite3 \
-  # Other
-  rabbitmq-c
+# For command docker-php-ext-install possible values
+# bcmath bz2 calendar ctype curl dba dl_test dom enchant exif ffi fileinfo filter ftp gd gettext gmp hash iconv imap
+# intl json ldap mbstring mysqli oci8 odbc opcache pcntl pdo pdo_dblib pdo_firebird pdo_mysql pdo_oci pdo_odbc pdo_pgsql
+# pdo_sqlite pgsql phar posix pspell random readline reflection session shmop simplexml snmp soap sockets sodium spl
+# standart sysvmsg sysvsem sysvshm tidy tokenizer xml xmlreader xmlwriter xsl zend_test zip
 
-# PHP requires these extension from Docker
-#RUN docker-php-ext-install pdo pdo_mysql gd
-RUN docker-php-ext-install pdo pdo_mysql gd intl pcntl
+# Install PHP extensions from Docker
+RUN docker-php-ext-install \
+    gd \
+    intl \
+    pcntl \
+    pdo_mysql
+    #pdo_pgsql
 
-# PHP PECL extensions
-RUN pecl install \
-    redis \
-    amqp
+# Install PHP PECL extensions
+RUN pecl install amqp && docker-php-ext-enable amqp \
+    && pecl install mongodb && docker-php-ext-enable mongodb \
+    && pecl install redis && docker-php-ext-enable redis \
+    && pecl install xdebug && docker-php-ext-enable xdebug
 
-RUN docker-php-ext-enable redis amqp
-
-#RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-#    && docker-php-ext-install zip bcmath opcache \
-#    && pecl install xdebug \
-#    && docker-php-ext-enable xdebug
-
-#rm -rf /var/lib/apt/lists/*
-
-# PHP Composer
+# Install PHP Composer
 COPY --from=composer:2.8.4 /usr/bin/composer /usr/bin/composer
 
-# Create symlink for php
-#RUN ln -sf /usr/bin/${PHP_V} /usr/bin/php
+# Enable Laravel schedule in Cron
+RUN echo "$(crontab -l; echo '* * * * * cd /var/www/ && php artisan schedule:run >> /dev/null 2>&1')" | crontab -
+
+# Enable Cron
+CMD crond -l 0 && php-fpm
 
 WORKDIR /var/www/
+
+# Install PHP dependencies
+#RUN composer install --no-dev --prefer-dist
+
+# Install node.js and dependencies
+#RUN npm install && npm run build

@@ -83,3 +83,22 @@ WORKDIR /var/www/html
 VOLUME ["/var/www/html/storage/app"]
 
 CMD ["sh", "-c", "nginx && php-fpm"]
+
+
+
+#RUN crontab -l | { cat; echo '* * * * * cd /var/www/ && php artisan schedule:run >> /dev/null 2>&1'; } | crontab -
+#RUN (crontab -l 2>/dev/null; echo "* * * * * cd /var/www/ && php artisan schedule:run >> /dev/null 2>&1") | crontab -
+
+#RUN apk del .build-deps
+
+#RUN echo "UTC" > /etc/timezone
+
+# Install PHP dependencies
+#RUN composer install --no-dev --prefer-dist
+
+# Install node.js and dependencies
+#RUN npm install && npm run build
+
+# Create symlink for php
+#RUN ln -sf /usr/bin/${PHP_V} /usr/bin/php
+

@@ -1,9 +1,12 @@
 FROM php:8.3-fpm-alpine
-ENV TZ UTC
+ENV TZ=UTC
 
 # Default modules in PHP 8.3
-# ctype curl date dom fileinfo filter hash iconv json libxml mbstring mysqlnd openssl pcre PDO pdo_sqlite Phar posix
-# random readline Reflection session SimpleXML sodium SPL sqlite3 standard tokenizer xml xmlreader xmlwriter zlib
+# ctype curl date dom fileinfo filter hash iconv json libxml mbstring mysqlnd openssl pcre pdo pdo_sqlite phar posix
+# random readline reflection session simplexml sodium spl sqlite3 standard tokenizer xml xmlreader xmlwriter zlib
+
+# Server Requirements for Laravel 11
+# ctype curl dom fileinfo filter hash mbstring openssl pcre pdo session tokenizer xml
 
 # Install main packages and remove default server definition
 RUN apk add --no-cache \
